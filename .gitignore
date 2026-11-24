@@ -12,3 +12,5 @@ dist/
 .vite/
 /package.json
 /package-lock.json
+_ui_backup_*/
+backend/db-check.mjs

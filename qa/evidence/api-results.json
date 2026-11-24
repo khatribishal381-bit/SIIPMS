@@ -1,0 +1,242 @@
+{
+  "project": "SIIPMS",
+  "assessment": "ICT308 Iteration 1",
+  "runAt": "2026-11-24T08:23:20.845Z",
+  "baseUrl": "http://localhost:5000/api",
+  "runId": "891c75f8",
+  "PASS": 38,
+  "FAIL": 0,
+  "SKIP": 0,
+  "total": 38,
+  "cases": [
+    {
+      "id": "QA-01",
+      "description": "Health endpoint",
+      "result": "PASS",
+      "durationMs": 50
+    },
+    {
+      "id": "QA-02",
+      "description": "Unauthenticated user cannot read session",
+      "result": "PASS",
+      "durationMs": 9
+    },
+    {
+      "id": "QA-03",
+      "description": "Short passwords are rejected during registration",
+      "result": "PASS",
+      "durationMs": 17
+    },
+    {
+      "id": "QA-04",
+      "description": "Public registration always creates student role",
+      "result": "PASS",
+      "durationMs": 692
+    },
+    {
+      "id": "QA-05",
+      "description": "Wrong password is rejected",
+      "result": "PASS",
+      "durationMs": 213
+    },
+    {
+      "id": "QA-06",
+      "description": "Login returns a valid session and the correct user",
+      "result": "PASS",
+      "durationMs": 197
+    },
+    {
+      "id": "QA-07",
+      "description": "Student cannot view admin user list",
+      "result": "PASS",
+      "durationMs": 2
+    },
+    {
+      "id": "QA-08",
+      "description": "Logout without CSRF token is blocked",
+      "result": "PASS",
+      "durationMs": 3
+    },
+    {
+      "id": "QA-09",
+      "description": "Requests from an unexpected browser origin are blocked",
+      "result": "PASS",
+      "durationMs": 1
+    },
+    {
+      "id": "QA-10",
+      "description": "Student can read published opportunity listing",
+      "result": "PASS",
+      "durationMs": 6
+    },
+    {
+      "id": "QA-11",
+      "description": "Student cannot create opportunities",
+      "result": "PASS",
+      "durationMs": 3
+    },
+    {
+      "id": "QA-12",
+      "description": "Student cannot create a log for an unowned placement",
+      "result": "PASS",
+      "durationMs": 7
+    },
+    {
+      "id": "QA-13",
+      "description": "Logout clears browser cookie and ends browser session",
+      "result": "PASS",
+      "durationMs": 4
+    },
+    {
+      "id": "QA-20",
+      "description": "Administrator login",
+      "result": "PASS",
+      "durationMs": 380
+    },
+    {
+      "id": "QA-21",
+      "description": "Administrator creates published opportunity",
+      "result": "PASS",
+      "durationMs": 77
+    },
+    {
+      "id": "QA-22",
+      "description": "Student can see published opportunity",
+      "result": "PASS",
+      "durationMs": 12
+    },
+    {
+      "id": "QA-23",
+      "description": "Student creates application draft",
+      "result": "PASS",
+      "durationMs": 8
+    },
+    {
+      "id": "QA-24",
+      "description": "Duplicate application is rejected",
+      "result": "PASS",
+      "durationMs": 5
+    },
+    {
+      "id": "QA-25",
+      "description": "Short cover statement cannot be submitted",
+      "result": "PASS",
+      "durationMs": 4
+    },
+    {
+      "id": "QA-26",
+      "description": "Student can edit a draft application",
+      "result": "PASS",
+      "durationMs": 4
+    },
+    {
+      "id": "QA-27",
+      "description": "Student submits a valid application",
+      "result": "PASS",
+      "durationMs": 57
+    },
+    {
+      "id": "QA-28",
+      "description": "Resubmitting an application is blocked",
+      "result": "PASS",
+      "durationMs": 2
+    },
+    {
+      "id": "QA-29",
+      "description": "Student cannot change application status as admin",
+      "result": "PASS",
+      "durationMs": 2
+    },
+    {
+      "id": "QA-30",
+      "description": "Admin cannot skip required status transitions",
+      "result": "PASS",
+      "durationMs": 4
+    },
+    {
+      "id": "QA-31",
+      "description": "Administrator transitions application to UNDER_REVIEW",
+      "result": "PASS",
+      "durationMs": 6
+    },
+    {
+      "id": "QA-32",
+      "description": "Administrator transitions application to SHORTLISTED",
+      "result": "PASS",
+      "durationMs": 5
+    },
+    {
+      "id": "QA-33",
+      "description": "Administrator transitions application to OFFERED",
+      "result": "PASS",
+      "durationMs": 6
+    },
+    {
+      "id": "QA-34",
+      "description": "Administrator transitions application to ACCEPTED",
+      "result": "PASS",
+      "durationMs": 6
+    },
+    {
+      "id": "QA-35",
+      "description": "Admin provisions supervisor, assigned mentor and other mentor",
+      "result": "PASS",
+      "durationMs": 1144
+    },
+    {
+      "id": "QA-36",
+      "description": "Admin allocates placement for accepted application",
+      "result": "PASS",
+      "durationMs": 17
+    },
+    {
+      "id": "QA-37",
+      "description": "Logbook entry above ten hours is rejected",
+      "result": "PASS",
+      "durationMs": 2
+    },
+    {
+      "id": "QA-38",
+      "description": "Student submits valid logbook hours",
+      "result": "PASS",
+      "durationMs": 21
+    },
+    {
+      "id": "QA-39",
+      "description": "Mentor cannot review an unrelated placement",
+      "result": "PASS",
+      "durationMs": 4
+    },
+    {
+      "id": "QA-40",
+      "description": "Returning hours without a comment fails",
+      "result": "PASS",
+      "durationMs": 2
+    },
+    {
+      "id": "QA-41",
+      "description": "Assigned mentor returns hours with a comment",
+      "result": "PASS",
+      "durationMs": 6
+    },
+    {
+      "id": "QA-42",
+      "description": "Student edits returned entry and resubmits",
+      "result": "PASS",
+      "durationMs": 6
+    },
+    {
+      "id": "QA-43",
+      "description": "Assigned mentor approves resubmitted hours",
+      "result": "PASS",
+      "durationMs": 6
+    },
+    {
+      "id": "QA-44",
+      "description": "Student cannot edit approved hours",
+      "result": "PASS",
+      "durationMs": 4
+    }
+  ],
+  "note": "These are live API checks. The frontend remains separate from backend API data. Test records remain in the local dev database."
+}

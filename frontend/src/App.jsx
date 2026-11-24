@@ -1,122 +1,45 @@
 import { useState } from 'react'
-import heroImg from './assets/hero.png'
-import reactLogo from './assets/react.svg'
-import viteLogo from './assets/vite.svg'
-import './App.css'
+import { useStoredState } from './hooks/useStoredState'
+import PortalLayout from './layouts/PortalLayout'
+import LoginPage from './pages/LoginPage'
+import { StudentPortal, MentorPortal, SupervisorPortal, AdminPortal } from './pages/PortalPages'
+import { applicationsSeed, opportunitiesSeed, logbookSeed, milestonesSeed, notificationsSeed } from './data/sampleData'
+import './styles/siipms.css'
 
-function App() {
-  const [count, setCount] = useState(0)
+const roleViews = { student: StudentPortal, mentor: MentorPortal, supervisor: SupervisorPortal, admin: AdminPortal }
 
+export default function App() {
+  const [role, setRole] = useState(null)
+  const [page, setPage] = useState('dashboard')
+  const [selectedOpportunity, setSelectedOpportunity] = useState('opp-1')
+  const [selectedStudent, setSelectedStudent] = useState('Amara Okafor')
+  const [applications, setApplications] = useStoredState('siipms:student:applications:v1', applicationsSeed)
+  const [opportunities, setOpportunities] = useStoredState('siipms:opportunities:v1', opportunitiesSeed)
+  const [logs, setLogs] = useStoredState('siipms:student:logbooks:v1', logbookSeed)
+  const [milestones, setMilestones] = useStoredState('siipms:student:milestones:v1', milestonesSeed)
+  const [notifications] = useState(notificationsSeed)
+  const [evaluation, setEvaluation] = useState(null)
+  const [allocations, setAllocations] = useState([])
+  const [toast, setToast] = useState('')
+
+  const navigate = (target) => { setPage(target); setToast(''); window.scrollTo({ top: 0, behavior: 'auto' }) }
+  const enterRole = (selectedRole) => { setRole(selectedRole); navigate('dashboard') }
+  const logout = () => { setRole(null); setPage('dashboard'); setToast('') }
+  const notify = (message) => { setToast(message); window.setTimeout(() => setToast(''), 5000) }
+
+  if (!role) return <LoginPage onEnter={enterRole} />
+
+  const PortalView = roleViews[role]
+  const data = { applications, opportunities, logs, milestones, notifications, evaluation, allocations, selectedOpportunity, selectedStudent }
+  const actions = { navigate, notify, setApplications, setOpportunities, setLogs, setMilestones, setEvaluation, setAllocations, setSelectedOpportunity, setSelectedStudent }
+  const titles = {
+    student: { apply: 'Apply for internship', confirmation: 'Application sent', detail: 'Opportunity details' },
+    mentor: {}, supervisor: { 'review-logs': 'Review logbook' }, admin: {},
+  }
   return (
-    <>
-      <section id="center">
-        <div className="hero">
-          <img src={heroImg} className="base" width="170" height="179" alt="" />
-          <img src={reactLogo} className="framework" alt="React logo" />
-          <img src={viteLogo} className="vite" alt="Vite logo" />
-        </div>
-        <div>
-          <h1>Get started</h1>
-          <p>
-            Edit <code>src/App.jsx</code> and save to test <code>HMR</code>
-          </p>
-        </div>
-        <button
-          type="button"
-          className="counter"
-          onClick={() => setCount((count) => count + 1)}
-        >
-          Count is {count}
-        </button>
-      </section>
-
-      <div className="ticks"></div>
-
-      <section id="next-steps">
-        <div id="docs">
-          <svg className="icon" role="presentation" aria-hidden="true">
-            <use href="/icons.svg#documentation-icon"></use>
-          </svg>
-          <h2>Documentation</h2>
-          <p>Your questions, answered</p>
-          <ul>
-            <li>
-              <a href="https://vite.dev/" target="_blank">
-                <img className="logo" src={viteLogo} alt="" />
-                Explore Vite
-              </a>
-            </li>
-            <li>
-              <a href="https://react.dev/" target="_blank">
-                <img className="button-icon" src={reactLogo} alt="" />
-                Learn more
-              </a>
-            </li>
-          </ul>
-        </div>
-        <div id="social">
-          <svg className="icon" role="presentation" aria-hidden="true">
-            <use href="/icons.svg#social-icon"></use>
-          </svg>
-          <h2>Connect with us</h2>
-          <p>Join the Vite community</p>
-          <ul>
-            <li>
-              <a href="https://github.com/vitejs/vite" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#github-icon"></use>
-                </svg>
-                GitHub
-              </a>
-            </li>
-            <li>
-              <a href="https://chat.vite.dev/" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#discord-icon"></use>
-                </svg>
-                Discord
-              </a>
-            </li>
-            <li>
-              <a href="https://x.com/vite_js" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#x-icon"></use>
-                </svg>
-                X.com
-              </a>
-            </li>
-            <li>
-              <a href="https://bsky.app/profile/vite.dev" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#bluesky-icon"></use>
-                </svg>
-                Bluesky
-              </a>
-            </li>
-          </ul>
-        </div>
-      </section>
-
-      <div className="ticks"></div>
-      <section id="spacer"></section>
-    </>
+    <PortalLayout role={role} activePage={page} onNavigate={navigate} onSignOut={logout} titleOverride={titles[role]?.[page]}>
+      <PortalView page={page} data={data} actions={actions} />
+      {toast && <div className="si-toast" role="status">{toast}<button type="button" onClick={() => setToast('')} aria-label="Dismiss message">×</button></div>}
+    </PortalLayout>
   )
 }
-
-export default App
