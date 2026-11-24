@@ -39,42 +39,109 @@ function Opportunities({ data, actions }) {
   const [search, setSearch] = useState('')
   const [discipline, setDiscipline] = useState('All disciplines')
   const [location, setLocation] = useState('All locations')
-  const filtered = data.opportunities.filter((o) => [o.title,o.company,o.description].join(' ').toLowerCase().includes(search.toLowerCase()) && (discipline === 'All disciplines' || o.discipline === discipline) && (location === 'All locations' || o.location === location))
-  return <div className="si-stack"><div className="si-search-strip"><div className="si-search-box"><Search size={17}/><input aria-label="Search internships or projects" placeholder="Search internships or projects" value={search} onChange={e=>setSearch(e.target.value)}/></div><select aria-label="Discipline" value={discipline} onChange={e=>setDiscipline(e.target.value)}><option>All disciplines</option><option>Software</option><option>Data</option><option>Business</option></select><select aria-label="Location" value={location} onChange={e=>setLocation(e.target.value)}><option>All locations</option><option>Sydney</option><option>Hybrid</option></select></div>
+  const openOpportunities = data.opportunities.filter((o) => o.open !== false)
+  const disciplines = [...new Set(openOpportunities.map((o) => o.discipline))].sort()
+  const locations = [...new Set(openOpportunities.map((o) => o.location))].sort()
+  const filtered = openOpportunities.filter((o) =>
+    [o.title, o.company, o.description].join(' ').toLowerCase().includes(search.trim().toLowerCase()) &&
+    (discipline === 'All disciplines' || o.discipline === discipline) &&
+    (location === 'All locations' || o.location === location)
+  )
+  return <div className="si-stack">
+    <div className="si-search-strip">
+      <div className="si-search-box"><Search size={17}/><input aria-label="Search internships or projects" placeholder="Search internships or projects" value={search} onChange={(e) => setSearch(e.target.value)}/></div>
+      <select aria-label="Discipline" value={discipline} onChange={(e) => setDiscipline(e.target.value)}><option>All disciplines</option>{disciplines.map((d) => <option key={d}>{d}</option>)}</select>
+      <select aria-label="Location" value={location} onChange={(e) => setLocation(e.target.value)}><option>All locations</option>{locations.map((l) => <option key={l}>{l}</option>)}</select>
+    </div>
     {filtered.length === 0 && <Card><Empty>No matching opportunities found. Try changing your filters.</Empty></Card>}
-    {filtered.map(o=><Card key={o.id} className="si-opportunity"><div className="si-opportunity__copy"><div className="si-line"><Pill status="Open">Open</Pill><h2>{o.title} — {o.company}</h2></div><p>{o.location} · {o.duration} · {o.hours} hours · Closes {o.closes}</p><p>{o.description}</p></div><Button onClick={()=>{actions.setSelectedOpportunity(o.id);actions.navigate('detail')}}>View &amp; apply</Button></Card>)}
+    {filtered.map((o) => <Card key={o.id} className="si-opportunity">
+      <div className="si-opportunity__copy"><div className="si-line"><Pill status="Open">Open</Pill><h2>{o.title} — {o.company}</h2></div><p>{o.location} · {o.duration} · {o.hours} hours · Closes {o.closes}</p><p>{o.description}</p></div>
+      <Button onClick={() => { actions.setSelectedOpportunity(o.id); actions.navigate('detail') }}>View &amp; apply</Button>
+    </Card>)}
   </div>
 }
 
 function OpportunityDetail({ data, actions }) {
-  const o = data.opportunities.find(x=>x.id===data.selectedOpportunity) || data.opportunities[0]
-  if(!o) return <Empty>Opportunity not found.</Empty>
-  return <Card className="si-content-card"><Button variant="outline" onClick={()=>actions.navigate('opportunities')}>Back to opportunities</Button><div className="si-detail-heading"><Pill status="Open">Open</Pill><h2>{o.title}</h2><p>{o.company} · {o.location} · {o.type}</p></div><div className="si-detail-grid"><div><small>Duration</small><strong>{o.duration}</strong></div><div><small>Required hours</small><strong>{o.hours}</strong></div><div><small>Closing date</small><strong>{o.closes}</strong></div></div><h3>About this opportunity</h3><p className="si-body-copy">{o.description}</p><Button onClick={()=>actions.navigate('apply')}>Apply for this opportunity</Button></Card>
+  const o = data.opportunities.find((x) => x.id === data.selectedOpportunity)
+  if (!o) return <Card><Empty>Opportunity not found.</Empty><Button variant="outline" onClick={() => actions.navigate('opportunities')}>Back to opportunities</Button></Card>
+  const submitted = data.applications.find((a) => a.student === 'Amara Okafor' && a.opportunityId === o.id && a.status !== 'Draft')
+  return <Card className="si-content-card">
+    <Button variant="outline" onClick={() => actions.navigate('opportunities')}>Back to opportunities</Button>
+    <div className="si-detail-heading"><Pill status={o.open === false ? 'Not started' : 'Open'}>{o.open === false ? 'Closed' : 'Open'}</Pill><h2>{o.title}</h2><p>{o.company} · {o.location} · {o.type}</p></div>
+    <div className="si-detail-grid"><div><small>Duration</small><strong>{o.duration}</strong></div><div><small>Required hours</small><strong>{o.hours}</strong></div><div><small>Closing date</small><strong>{o.closes}</strong></div></div>
+    <h3>About this opportunity</h3><p className="si-body-copy">{o.description}</p>
+    {submitted ? <div className="si-row-actions"><Pill>{submitted.status}</Pill><Button variant="outline" onClick={() => actions.navigate('applications')}>View my application</Button></div> :
+      <Button disabled={o.open === false} onClick={() => actions.navigate('apply')}>{o.open === false ? 'Applications closed' : 'Apply for this opportunity'}</Button>}
+  </Card>
 }
 
 function StudentApply({ data, actions }) {
-  const o = data.opportunities.find(x=>x.id===data.selectedOpportunity) || data.opportunities[0]
-  const [cover,setCover] = useState('')
-  const [error,setError] = useState('')
-  const existing = data.applications.find(a=>a.student==='Amara Okafor' && a.opportunityId===o.id && a.status !== 'Draft')
+  const o = data.opportunities.find((x) => x.id === data.selectedOpportunity)
+  const draft = data.applications.find((a) => a.student === 'Amara Okafor' && a.opportunityId === o?.id && a.status === 'Draft')
+  const submitted = data.applications.find((a) => a.student === 'Amara Okafor' && a.opportunityId === o?.id && a.status !== 'Draft')
+  const [cover, setCover] = useState(draft?.coverStatement ?? '')
+  const [error, setError] = useState('')
+  if (!o) return <Card><Empty>Opportunity not found.</Empty></Card>
+
   const save = (status) => {
-    if (status==='Under review' && cover.trim().length < 20) {setError('Write a cover statement of at least 20 characters.');return}
-    const newRecord={id:`app-${Date.now()}`,opportunityId:o.id,title:`${o.company} — ${o.title}`,student:'Amara Okafor',submitted:fmtDate(new Date().toISOString().slice(0,10)),status}
-    actions.setApplications(prev=>status==='Draft' ? [...prev.filter(a=>!(a.student===newRecord.student && a.opportunityId===o.id && a.status==='Draft')),newRecord] : [...prev.filter(a=>!(a.student===newRecord.student && a.opportunityId===o.id && a.status==='Draft')),newRecord])
-    if(status==='Draft'){actions.notify('Application draft saved in this session.');actions.navigate('applications')} else actions.navigate('confirmation')
+    if (submitted) { setError('An application for this opportunity has already been submitted.'); return }
+    if (o.open === false) { setError('Applications are closed for this opportunity.'); return }
+    if (status === 'Under review' && cover.trim().length < 20) {
+      setError('Please write at least 20 characters explaining your interest.')
+      return
+    }
+    const today = new Intl.DateTimeFormat('en-AU', { day: 'numeric', month: 'short', year: 'numeric' }).format(new Date())
+    const record = {
+      id: draft?.id ?? `app-${Date.now()}`,
+      opportunityId: o.id, title: `${o.company} — ${o.title}`,
+      student: 'Amara Okafor', submitted: status === 'Draft' ? '—' : today,
+      status, coverStatement: cover.trim(),
+    }
+    actions.setApplications((prev) => [...prev.filter((a) => !(a.student === record.student && a.opportunityId === o.id && a.status === 'Draft')), record])
+    if (status === 'Draft') {
+      actions.notify('Application draft saved.')
+      actions.navigate('applications')
+    } else {
+      actions.navigate('confirmation')
+    }
   }
-  return <Card className="si-form-card"><Heading title={`Apply — ${o.company} ${o.type.toLowerCase()}`} description="Your profile documents will be attached when the application service is connected."/>
-    {existing ? <div className="si-stack"><p>You already have an application for this opportunity.</p><Pill>{existing.status}</Pill><Button onClick={()=>actions.navigate('applications')}>View my applications</Button></div> : <form onSubmit={e=>{e.preventDefault();save('Under review')}}><label className="si-form-label" htmlFor="cover-letter">Cover statement</label><textarea id="cover-letter" className="si-form-control si-cover" value={cover} onChange={e=>{setCover(e.target.value);setError('')}} placeholder="Explain why you are interested in this opportunity and what you can contribute."/>{error && <p className="si-field-error" role="alert">{error}</p>}<p className="si-form-help">A CV and supporting documents can be attached from your student profile once the profile service is available.</p><div className="si-row-actions"><Button variant="outline" onClick={()=>save('Draft')}>Save draft</Button><Button type="submit">Submit application</Button></div></form>}
+  return <Card className="si-form-card">
+    <Heading title={`Apply — ${o.company} ${o.type.toLowerCase()}`} description="Complete your application details below."/>
+    {submitted ? <div className="si-stack"><p>You already have an application for this opportunity.</p><Pill>{submitted.status}</Pill><Button onClick={() => actions.navigate('applications')}>View my applications</Button></div> :
+      <form onSubmit={(e) => { e.preventDefault(); save('Under review') }}>
+        <label className="si-form-label" htmlFor="cover-letter">Cover statement</label>
+        <textarea id="cover-letter" className="si-form-control si-cover" value={cover} onChange={(e) => { setCover(e.target.value); setError('') }} placeholder="Explain why you are interested in this opportunity and what you can contribute."/>
+        {error && <p className="si-field-error" role="alert">{error}</p>}
+        <p className="si-form-help">Your profile documents will be available here once the profile and document service is connected.</p>
+        <div className="si-row-actions"><Button variant="outline" onClick={() => save('Draft')}>Save draft</Button><Button type="submit">Submit application</Button></div>
+      </form>}
   </Card>
 }
 function Confirmation({ actions }) { return <div className="si-centered"><Card className="si-confirmation"><Pill status="Submitted">Submitted</Pill><h2>Application sent</h2><p>Your application is in the Placement Office queue. You can track its progress under My applications.</p><Button onClick={()=>actions.navigate('applications')}>Track status</Button></Card></div> }
 function Applications({ data, actions }) {
-  const list=data.applications.filter(a=>a.student==='Amara Okafor')
-  return <Card className="si-table-card"><div className="si-table-scroll"><table><thead><tr><th>Opportunity</th><th>Submitted</th><th>Status</th><th>Action</th></tr></thead><tbody>{list.map(a=><tr key={a.id}><td>{a.title}</td><td>{a.submitted}</td><td><Pill>{a.status}</Pill></td><td>{a.status==='Draft' && <button type="button" className="si-table-action" onClick={()=>{actions.setSelectedOpportunity(a.opportunityId);actions.navigate('apply')}}>Continue</button>}</td></tr>)}</tbody></table></div></Card>
+  const [search, setSearch] = useState('')
+  const [status, setStatus] = useState('All statuses')
+  const own = data.applications.filter((a) => a.student === 'Amara Okafor')
+  const statuses = [...new Set(own.map((a) => a.status))].sort()
+  const filtered = own.filter((a) =>
+    [a.title, a.status].join(' ').toLowerCase().includes(search.trim().toLowerCase()) &&
+    (status === 'All statuses' || a.status === status)
+  )
+  return <Card className="si-table-card">
+    <Heading title="My applications" description="Check your application status or continue a saved draft."/>
+    <div className="si-search-strip si-applications-search">
+      <div className="si-search-box"><Search size={17}/><input aria-label="Search my applications" placeholder="Search applications" value={search} onChange={(e) => setSearch(e.target.value)}/></div>
+      <select aria-label="Application status" value={status} onChange={(e) => setStatus(e.target.value)}><option>All statuses</option>{statuses.map((s) => <option key={s}>{s}</option>)}</select>
+    </div>
+    {filtered.length === 0 ? <Empty>No applications match your search.</Empty> :
+      <div className="si-table-scroll"><table><thead><tr><th>Opportunity</th><th>Submitted</th><th>Status</th><th>Action</th></tr></thead><tbody>{filtered.map((a) => <tr key={a.id}>
+        <td>{a.title}</td><td>{a.submitted}</td><td><Pill>{a.status}</Pill></td><td>{a.status === 'Draft' ? <button type="button" className="si-table-action" onClick={() => { actions.setSelectedOpportunity(a.opportunityId); actions.navigate('apply') }}>Continue draft</button> : <span className="si-muted">—</span>}</td>
+      </tr>)}</tbody></table></div>}
+  </Card>
 }
 
 function StudentLogbook({ data, actions }) {
-  const [date,setDate]=useState('2026-11-20'), [hours,setHours]=useState('8'), [activity,setActivity]=useState(''),[reflection,setReflection]=useState(''),[error,setError]=useState(''),[editId,setEditId]=useState(null)
+  const [date,setDate]=useState(new Date().toISOString().slice(0,10)), [hours,setHours]=useState('8'), [activity,setActivity]=useState(''),[reflection,setReflection]=useState(''),[error,setError]=useState(''),[editId,setEditId]=useState(null)
   const own=data.logs.filter(x=>x.student==='Amara Okafor')
   const approved=own.filter(x=>x.status==='Approved').reduce((n,x)=>n+x.hours,35)
   const pending=own.filter(x=>x.status==='Pending').reduce((n,x)=>n+x.hours,0)

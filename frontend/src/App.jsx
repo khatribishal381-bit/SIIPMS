@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { useStoredState } from './hooks/useStoredState'
 import PortalLayout from './layouts/PortalLayout'
 import LoginPage from './pages/LoginPage'
 import { StudentPortal, MentorPortal, SupervisorPortal, AdminPortal } from './pages/PortalPages'
@@ -12,10 +13,10 @@ export default function App() {
   const [page, setPage] = useState('dashboard')
   const [selectedOpportunity, setSelectedOpportunity] = useState('opp-1')
   const [selectedStudent, setSelectedStudent] = useState('Amara Okafor')
-  const [applications, setApplications] = useState(applicationsSeed)
-  const [opportunities, setOpportunities] = useState(opportunitiesSeed)
-  const [logs, setLogs] = useState(logbookSeed)
-  const [milestones, setMilestones] = useState(milestonesSeed)
+  const [applications, setApplications] = useStoredState('siipms:student:applications:v1', applicationsSeed)
+  const [opportunities, setOpportunities] = useStoredState('siipms:opportunities:v1', opportunitiesSeed)
+  const [logs, setLogs] = useStoredState('siipms:student:logbooks:v1', logbookSeed)
+  const [milestones, setMilestones] = useStoredState('siipms:student:milestones:v1', milestonesSeed)
   const [notifications] = useState(notificationsSeed)
   const [evaluation, setEvaluation] = useState(null)
   const [allocations, setAllocations] = useState([])
