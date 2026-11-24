@@ -4,7 +4,7 @@ generator client {
 
 datasource db {
   provider = "postgresql"
-  url = env("DATABASE_URL")
+  url      = env("DATABASE_URL")
 }
 
 enum Role {
@@ -14,11 +14,141 @@ enum Role {
   PLACEMENT_ADMIN
 }
 
+enum OpportunityStatus {
+  DRAFT
+  PUBLISHED
+  CLOSED
+  ARCHIVED
+}
+
+enum ApplicationStatus {
+  DRAFT
+  SUBMITTED
+  UNDER_REVIEW
+  SHORTLISTED
+  OFFERED
+  ACCEPTED
+  REJECTED
+  WITHDRAWN
+}
+
+enum LogbookStatus {
+  PENDING
+  APPROVED
+  RETURNED
+}
+
 model User {
-  id           String   @id @default(uuid())
-  email        String   @unique
-  passwordHash String
-  role         Role
-  createdAt    DateTime @default(now())
-  updatedAt    DateTime @updatedAt
+  id                     String                     @id @default(uuid())
+  email                  String                     @unique
+  fullName               String?
+  passwordHash           String
+  role                   Role
+  isActive               Boolean                    @default(true)
+  failedLogins           Int                        @default(0)
+  lockedUntil            DateTime?
+  organizationId         String?
+  organization           Organization?              @relation(fields: [organizationId], references: [id])
+  createdAt              DateTime                   @default(now())
+  updatedAt              DateTime                   @updatedAt
+  applications           Application[]              @relation("StudentApplications")
+  createdOpportunities   Opportunity[]              @relation("OpportunityCreator")
+  mentoredPlacements     Placement[]                @relation("PlacementMentor")
+  supervisedPlacements   Placement[]                @relation("PlacementSupervisor")
+  reviewedLogs           LogbookEntry[]             @relation("LogReviewer")
+  applicationStatusEdits ApplicationStatusHistory[] @relation("ApplicationStatusEditor")
+}
+
+model Organization {
+  id            String        @id @default(uuid())
+  name          String        @unique
+  industry      String?
+  contactEmail  String?
+  opportunities Opportunity[]
+  users         User[]
+}
+
+model Opportunity {
+  id            String            @id @default(uuid())
+  title         String
+  description   String
+  type          String            @default("INTERNSHIP")
+  discipline    String?
+  location      String?
+  durationWeeks Int?
+  totalHours    Int?
+  closingDate   DateTime?
+  status        OpportunityStatus @default(DRAFT)
+  organizationId String
+  organization  Organization      @relation(fields: [organizationId], references: [id])
+  createdById   String
+  createdBy     User              @relation("OpportunityCreator", fields: [createdById], references: [id])
+  applications  Application[]
+  createdAt     DateTime          @default(now())
+  updatedAt     DateTime          @updatedAt
+  @@index([status, closingDate])
+}
+
+model Application {
+  id              String                   @id @default(uuid())
+  studentId       String
+  student         User                     @relation("StudentApplications", fields: [studentId], references: [id])
+  opportunityId   String
+  opportunity     Opportunity              @relation(fields: [opportunityId], references: [id])
+  coverStatement  String                   @default("")
+  status          ApplicationStatus        @default(DRAFT)
+  submittedAt     DateTime?
+  createdAt       DateTime                 @default(now())
+  updatedAt       DateTime                 @updatedAt
+  placement       Placement?
+  statusHistory   ApplicationStatusHistory[]
+  @@unique([studentId, opportunityId])
+  @@index([status])
+}
+
+model ApplicationStatusHistory {
+  id            String            @id @default(uuid())
+  applicationId String
+  application   Application       @relation(fields: [applicationId], references: [id])
+  fromStatus    ApplicationStatus?
+  toStatus      ApplicationStatus
+  changedById   String
+  changedBy     User              @relation("ApplicationStatusEditor", fields: [changedById], references: [id])
+  changedAt     DateTime          @default(now())
+  @@index([applicationId, changedAt])
+}
+
+model Placement {
+  id            String         @id @default(uuid())
+  applicationId String         @unique
+  application   Application    @relation(fields: [applicationId], references: [id])
+  supervisorId  String
+  supervisor    User           @relation("PlacementSupervisor", fields: [supervisorId], references: [id])
+  mentorId      String
+  mentor        User           @relation("PlacementMentor", fields: [mentorId], references: [id])
+  startDate     DateTime
+  endDate       DateTime
+  requiredHours Int            @default(120)
+  logs          LogbookEntry[]
+  createdAt     DateTime       @default(now())
+  @@index([mentorId])
+  @@index([supervisorId])
+}
+
+model LogbookEntry {
+  id             String        @id @default(uuid())
+  placementId    String
+  placement      Placement     @relation(fields: [placementId], references: [id])
+  entryDate      DateTime
+  hours          Float
+  activity       String
+  reflection     String        @default("")
+  status         LogbookStatus @default(PENDING)
+  reviewComment  String?
+  reviewedById   String?
+  reviewedBy     User?         @relation("LogReviewer", fields: [reviewedById], references: [id])
+  reviewedAt     DateTime?
+  createdAt      DateTime      @default(now())
+  updatedAt      DateTime      @updatedAt
+  @@index([placementId, status])
 }
